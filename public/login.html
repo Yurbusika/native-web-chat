@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <h1>Login</h1>
+        <form id="login-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-message" hidden></p>
+
+        <button id="logout-button">Выйти</button>
+        <script>
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                const res = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                window.location.href = '/login';
+            });
+
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const messageEl = document.getElementById('login-message');
+                const body = Object.fromEntries(new FormData(form));
+                try {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: JSON.stringify(body),
+                    });
+                    if (res.ok) {
+                        messageEl.textContent = 'Вы успешно вошли в систему';
+                    } else {
+                        alert('Ошибка при входе в систему');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    messageEl.textContent = 'Ошибка при входе в систему';
+                    messageEl.hidden = false;
+                }
+            });
+        </script>
+    </body>
+</html>

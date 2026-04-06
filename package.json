@@ -1,0 +1,16 @@
+{
+  "name": "native-web-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env --watch server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sqlite3": "^6.0.1",
+    "ws": "^8.20.0"
+  }
+}
