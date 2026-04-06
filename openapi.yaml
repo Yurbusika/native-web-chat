@@ -1,0 +1,448 @@
+openapi: 3.0.3
+info:
+  title: native-web-chat API
+  description: |
+    HTTP API и статические HTML-страницы приложения «native-web-chat».
+
+    **Авторизация:** после успешного `POST /api/login` сервер выставляет HttpOnly-cookie `session`
+    (срок жизни по умолчанию 7 дней, см. `SESSION_MAX_AGE_SEC`). Защищённые маршруты требуют эту cookie.
+
+    Тела запросов к `/api/*` (кроме GET/DELETE без тела) ожидаются в формате JSON (`Content-Type: application/json`).
+  version: 1.0.0
+
+servers:
+  - url: 'http://{host}:{port}'
+    description: 'Локальный сервер (переменные .env — HOST, PORT)'
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '3000'
+
+tags:
+  - name: Auth
+    description: Регистрация, вход, выход
+  - name: Chats
+    description: Личные чаты 1-к-1 (участник — текущий пользователь и собеседник)
+  - name: Pages
+    description: HTML-страницы для браузера
+
+paths:
+  /api/registration:
+    post:
+      tags: [Auth]
+      summary: Регистрация пользователя
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              default:
+                value:
+                  username: alice
+                  password: secret
+      responses:
+        '200':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '400':
+          description: Имя уже занято
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              examples:
+                duplicate:
+                  value:
+                    error: Пользователь с таким именем уже существует
+
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Вход и установка сессии
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход; в заголовке ответа приходит `Set-Cookie` с токеном сессии
+          headers:
+            Set-Cookie:
+              description: |
+                Cookie `session=<token>`; атрибуты Path=/, HttpOnly, SameSite=Lax;
+                в production дополнительно Secure.
+              schema:
+                type: string
+                example: session=abc123; Max-Age=604800; Path=/; HttpOnly; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '401':
+          description: Неверные учётные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /api/logout:
+    post:
+      tags: [Auth]
+      summary: Выход (инвалидация сессии и очистка cookie)
+      operationId: logoutUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Сессия удалена
+          headers:
+            Set-Cookie:
+              description: Очистка cookie сессии (Max-Age=0)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: Вы успешно вышли из системы
+        '401':
+          description: Нет или недействительная сессия
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /api/chats:
+    get:
+      tags: [Chats]
+      summary: Список чатов текущего пользователя
+      operationId: listChats
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Массив чатов, отсортированных по `updated_at` убыванию
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatWithPeer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Chats]
+      summary: Создать чат 1-к-1 с пользователем или вернуть существующий
+      operationId: createChat
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChatRequest'
+      responses:
+        '201':
+          description: Новый чат создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateChatResultNew'
+        '200':
+          description: Такой чат между двумя пользователями уже был — возвращается его id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateChatResultExisting'
+        '400':
+          description: Некорректное тело, peerId, попытка чата с собой
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Собеседник не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/chats/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ChatId'
+    get:
+      tags: [Chats]
+      summary: Детали чата по id (только если пользователь — участник)
+      operationId: getChatById
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Чат найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatWithPeer'
+        '400':
+          description: Некорректный id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Чат не найден или нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Chats]
+      summary: Отметить чат прочитанным для текущего пользователя
+      description: |
+        Сбрасывает `has_unread` для участника-запрашивающего и возвращает актуальное состояние чата
+        (как у `GET /api/chats/{id}`).
+      operationId: markChatRead
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Обновлённое состояние чата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatWithPeer'
+        '400':
+          description: Некорректный id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Чат не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags: [Chats]
+      summary: Удалить чат (каскадно по схеме БД)
+      operationId: deleteChat
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Чат удалён
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Некорректный id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Чат не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /:
+    get:
+      tags: [Pages]
+      summary: Главная (лендинг)
+      operationId: getLandingPage
+      responses:
+        '200':
+          description: HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /login:
+    get:
+      tags: [Pages]
+      summary: Страница входа
+      operationId: getLoginPage
+      responses:
+        '200':
+          description: HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /registration:
+    get:
+      tags: [Pages]
+      summary: Страница регистрации
+      operationId: getRegistrationPage
+      responses:
+        '200':
+          description: HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Идентификатор сессии после успешного логина
+
+  parameters:
+    ChatId:
+      name: id
+      in: path
+      required: true
+      description: Идентификатор чата (положительное целое)
+      schema:
+        type: integer
+        minimum: 1
+
+  responses:
+    Unauthorized:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+          examples:
+            default:
+              value:
+                error: Не авторизован
+
+  schemas:
+    ErrorMessage:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    UserPublic:
+      type: object
+      required: [id, username]
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: alice
+
+    RegisterRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    ChatWithPeer:
+      type: object
+      description: Чат с данными о собеседнике относительно текущего пользователя
+      required:
+        - id
+        - created_at
+        - updated_at
+        - has_unread
+        - peer_id
+        - peer_username
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: integer
+          description: Unix-время в миллисекундах
+        updated_at:
+          type: integer
+          description: Unix-время в миллисекундах
+        has_unread:
+          type: integer
+          description: 0 или 1 (SQLite)
+          enum: [0, 1]
+        peer_id:
+          type: integer
+        peer_username:
+          type: string
+
+    CreateChatRequest:
+      type: object
+      required: [peerId]
+      properties:
+        peerId:
+          type: integer
+          minimum: 1
+          description: id пользователя-собеседника
+
+    CreateChatResultNew:
+      type: object
+      required: [id, existed]
+      properties:
+        id:
+          type: integer
+        existed:
+          type: boolean
+          enum: [false]
+
+    CreateChatResultExisting:
+      type: object
+      required: [id, existed]
+      properties:
+        id:
+          type: integer
+        existed:
+          type: boolean
+          enum: [true]
+
+security: []

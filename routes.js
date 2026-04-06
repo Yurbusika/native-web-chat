@@ -1,5 +1,6 @@
 import { getReadedPublicFile } from './shared/utils/get-readed-public-file.js';
 import { authController } from './auth/auth.controller.js';
+import { chatController } from './chats/chat.controller.js';
 
 export const pagesRoutes = [
   {
@@ -28,6 +29,4 @@ export const pagesRoutes = [
   },
 ];
 
-export const apiRoutes = [
-  ...authController,
-];
+export const apiRoutes = [...authController, ...chatController];

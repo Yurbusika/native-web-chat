@@ -3,16 +3,21 @@ import http from 'http';
 import { requireAuth } from './auth/require-auth.js';
 import { pagesRoutes, apiRoutes } from './routes.js';
 import { initDb } from './shared/utils/db-helpers.js';
-
+import { matchParameterizedRoute } from './shared/utils/match-parameterized-route.js';
+import { getPathname } from './shared/utils/get-pathname.js';
 
 await initDb();
 
 const server = http.createServer(async (req, res) => {
-  const route = pagesRoutes.find((r) => r.path === req.url && r.method === req.method);
-  const apiRoute = apiRoutes.find((r) => r.path === req.url && r.method === req.method);
-
-  const existedRoute = route || apiRoute;
-  
+  const pathname = getPathname(req);
+  const pageRoute = pagesRoutes.find(
+    (r) => r.path === pathname && r.method === req.method
+  );
+  const apiMatch = pageRoute
+    ? null
+    : matchParameterizedRoute(pathname, req.method, apiRoutes);
+  const existedRoute = pageRoute ?? apiMatch?.route;
+  const routeParams = apiMatch?.params ?? {};
 
   if (existedRoute) {
     if (existedRoute.requiresAuth) {
@@ -20,10 +25,10 @@ const server = http.createServer(async (req, res) => {
       if (!auth) {
         return;
       }
-      await existedRoute.handler(req, res, auth);
+      await existedRoute.handler(req, res, auth, routeParams);
       return;
     }
-    
+
     await existedRoute.handler(req, res);
     return;
   }
