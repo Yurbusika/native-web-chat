@@ -1,5 +1,5 @@
 import { getSessionIdFromRequest } from '../shared/utils/cookie-helpers.js';
-import { findValidSession } from './session.repository.js';
+import { findValidSession } from './auth.repository.js';
 
 export const requireAuth = async (req, res) => {
   const sessionId = getSessionIdFromRequest(req);

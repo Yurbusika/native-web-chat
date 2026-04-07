@@ -2,8 +2,8 @@ import { SESSION_MAX_AGE_SEC } from '../shared/constants/session-consts.js';
 import { getBodyFromReq } from '../shared/utils/get-body-from-req.js';
 import { buildSessionClearCookie, buildSessionSetCookie } from '../shared/utils/cookie-helpers.js';
 import { hashPassword, verifyPassword } from '../shared/utils/pass-helpers.js';
-import { createUser, getUserByName } from './auth.repository.js';
-import { createSession, deleteSession } from './session.repository.js';
+import { createUser, getUserByName } from '../user/user.repository.js';
+import { createSession, deleteSession } from './auth.repository.js';
 
 
 export const registerUser = async (req, res) => {

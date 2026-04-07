@@ -10,6 +10,8 @@ info:
     Тела запросов к `/api/*` (кроме GET/DELETE без тела) ожидаются в формате JSON (`Content-Type: application/json`).
 
     **Сообщения:** операции с сообщениями доступны по путям `/api/chats/{chatId}/messages` (только для участников чата).
+
+    **Пользователи:** `GET /api/users?name=...` — поиск по подстроке `username` (требуется сессия).
   version: 1.0.0
 
 servers:
@@ -24,6 +26,8 @@ servers:
 tags:
   - name: Auth
     description: Регистрация, вход, выход
+  - name: Users
+    description: Поиск пользователей по имени (для выбора собеседника и т.п.)
   - name: Chats
     description: Личные чаты 1-к-1 (участник — текущий пользователь и собеседник)
   - name: Messages
@@ -56,12 +60,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserPublic'
         '400':
-          description: Имя уже занято
+          description: Некорректные данные или имя уже занято
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
               examples:
+                invalid:
+                  value:
+                    error: Некорректные данные для регистрации
                 duplicate:
                   value:
                     error: Пользователь с таким именем уже существует
@@ -98,6 +105,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
+              examples:
+                default:
+                  value:
+                    error: Неверное имя пользователя или пароль
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: Найти пользователя по подстроке имени
+      description: |
+        Поиск через SQL `LIKE` (`%name%`); из результатов выбирается одна строка (`db.get`), порядок не гарантируется.
+        Если параметр `name` отсутствует или пустой, возвращается 400.
+        При отсутствии совпадений в текущей реализации возможен ответ 200 с пустым телом (не JSON).
+      operationId: findUsersByName
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: Подстрока для поиска по полю `username` (без автоматического URL-decode в сервере — передавайте значение в query как есть)
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: |
+            При нахождении совпадения — JSON `{ id, username }`.
+            Если совпадений нет, тело ответа может быть пустым.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '400':
+          description: Не указано или пустое имя для поиска
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              examples:
+                default:
+                  value:
+                    error: Некорректное имя пользователя
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/logout:
     post:
@@ -175,13 +227,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateChatResultExisting'
         '400':
-          description: Некорректное тело, peerId, попытка чата с собой
+          description: |
+            Некорректное тело JSON, невалидный `peerId`, попытка чата с собой.
+            Примеры: «Некорректное тело запроса», «Укажите peerId собеседника», «Нельзя создать чат с самим собой».
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
         '404':
-          description: Собеседник не найден
+          description: Пользователь с указанным peerId не найден
           content:
             application/json:
               schema:
@@ -212,7 +266,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
         '404':
-          description: Чат не найден или нет доступа
+          description: Чат не найден
           content:
             application/json:
               schema:
@@ -310,7 +364,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
         '404':
-          description: Чат не найден или нет доступа
+          description: Чат не найден
           content:
             application/json:
               schema:
@@ -348,7 +402,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
         '404':
-          description: Чат не найден или нет доступа
+          description: Чат не найден
           content:
             application/json:
               schema:
@@ -385,7 +439,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
         '404':
-          description: Сообщение или чат не найдены / нет доступа
+          description: Чат не найден или сообщение не найдено (в т.ч. сообщение из другого чата)
           content:
             application/json:
               schema:
@@ -578,7 +632,9 @@ components:
 
     Message:
       type: object
-      description: Запись из таблицы `messages`
+      description: |
+        Запись из таблицы `messages`.
+        В ответе `GET /api/chats/{chatId}/messages` дополнительно приходит `senderName` (JOIN с `users`).
       required:
         - id
         - chat_id
@@ -597,6 +653,9 @@ components:
         created_at:
           type: integer
           description: Unix-время в миллисекундах
+        senderName:
+          type: string
+          description: Имя отправителя (только в списке сообщений чата)
 
     CreateMessageRequest:
       type: object
@@ -614,7 +673,7 @@ components:
       properties:
         lastID:
           type: integer
-          description: `id` вставленной строки
+          description: id вставленной строки (lastID из SQLite run)
         changes:
           type: integer
           description: Число затронутых строк

@@ -1,19 +1,30 @@
-import { getAsync } from '../shared/utils/db-helpers.js';
-import { runAsync } from '../shared/utils/db-helpers.js';
+import crypto from 'node:crypto';
 
-export const getUserByName = async (username) => {
-  return await getAsync('SELECT * FROM users WHERE username = ?', [username]);
-};
+import { getAsync, runAsync } from '../shared/utils/db-helpers.js';
 
-export const getUserById = async (id) => {
-  return await getAsync('SELECT id, username FROM users WHERE id = ?', [id]);
-};
-
-export const createUser = async (username, hashedPassword) => {
-  const { lastID } = await runAsync(
-    'INSERT INTO users (username, password) VALUES (?, ?)',
-    [username, hashedPassword]
+export const createSession = async (userId, expiresAtMs) => {
+  const id = crypto.randomBytes(32).toString('base64url');
+  await runAsync(
+    'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
+    [id, userId, expiresAtMs]
   );
-  return { id: lastID, username };
+  return id;
 };
 
+export const findValidSession = async (sessionId) => {
+  if (!sessionId || typeof sessionId !== 'string') {
+    return undefined;
+  }
+  const now = Date.now();
+  return await getAsync(
+    `SELECT s.user_id AS userId, u.username
+     FROM sessions s
+     INNER JOIN users u ON u.id = s.user_id
+     WHERE s.id = ? AND s.expires_at > ?`,
+    [sessionId, now]
+  );
+};
+
+export const deleteSession = async (sessionId) => {
+  await runAsync('DELETE FROM sessions WHERE id = ?', [sessionId]);
+};

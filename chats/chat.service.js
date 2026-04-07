@@ -1,4 +1,4 @@
-import { getUserById } from '../auth/auth.repository.js';
+import { getUserById } from '../user/user.repository.js';
 import { getBodyFromReq } from '../shared/utils/get-body-from-req.js';
 import {
   deleteChat as removeChatById,
