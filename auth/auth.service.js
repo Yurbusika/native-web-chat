@@ -10,6 +10,12 @@ export const registerUser = async (req, res) => {
   const body = await getBodyFromReq(req);
   const hashedPassword = await hashPassword(body.password);
 
+  if (!body.username || !body.password) {
+    return res
+      .writeHead(400, { 'Content-Type': 'application/json' })
+      .end(JSON.stringify({ error: 'Некорректные данные для регистрации' }));
+  }
+
   const existingUser = await getUserByName(body.username);
   if (existingUser) {
     return res

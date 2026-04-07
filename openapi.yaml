@@ -8,6 +8,8 @@ info:
     (срок жизни по умолчанию 7 дней, см. `SESSION_MAX_AGE_SEC`). Защищённые маршруты требуют эту cookie.
 
     Тела запросов к `/api/*` (кроме GET/DELETE без тела) ожидаются в формате JSON (`Content-Type: application/json`).
+
+    **Сообщения:** операции с сообщениями доступны по путям `/api/chats/{chatId}/messages` (только для участников чата).
   version: 1.0.0
 
 servers:
@@ -24,6 +26,8 @@ tags:
     description: Регистрация, вход, выход
   - name: Chats
     description: Личные чаты 1-к-1 (участник — текущий пользователь и собеседник)
+  - name: Messages
+    description: Сообщения внутри чата (только для участников)
   - name: Pages
     description: HTML-страницы для браузера
 
@@ -280,6 +284,115 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/chats/{chatId}/messages:
+    parameters:
+      - $ref: '#/components/parameters/ChatIdInMessagesPath'
+    get:
+      tags: [Messages]
+      summary: Список сообщений чата
+      description: Сообщения в порядке хранения в БД (обычно по возрастанию `created_at`).
+      operationId: listMessagesByChat
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Массив сообщений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '400':
+          description: Некорректный идентификатор чата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Чат не найден или нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Messages]
+      summary: Отправить сообщение в чат
+      operationId: createMessage
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+            examples:
+              default:
+                value:
+                  body: Привет!
+      responses:
+        '201':
+          description: Сообщение сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageCreateResult'
+        '400':
+          description: Некорректный идентификатор чата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Чат не найден или нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/chats/{chatId}/messages/{messageId}:
+    parameters:
+      - $ref: '#/components/parameters/ChatIdInMessagesPath'
+      - $ref: '#/components/parameters/MessageId'
+    delete:
+      tags: [Messages]
+      summary: Удалить сообщение по id
+      operationId: deleteMessage
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Сообщение удалено
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Некорректные идентификаторы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Сообщение или чат не найдены / нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /:
     get:
       tags: [Pages]
@@ -333,6 +446,24 @@ components:
       in: path
       required: true
       description: Идентификатор чата (положительное целое)
+      schema:
+        type: integer
+        minimum: 1
+
+    ChatIdInMessagesPath:
+      name: chatId
+      in: path
+      required: true
+      description: Идентификатор чата (положительное целое)
+      schema:
+        type: integer
+        minimum: 1
+
+    MessageId:
+      name: messageId
+      in: path
+      required: true
+      description: Идентификатор сообщения (положительное целое)
       schema:
         type: integer
         minimum: 1
@@ -444,5 +575,48 @@ components:
         existed:
           type: boolean
           enum: [true]
+
+    Message:
+      type: object
+      description: Запись из таблицы `messages`
+      required:
+        - id
+        - chat_id
+        - sender_id
+        - body
+        - created_at
+      properties:
+        id:
+          type: integer
+        chat_id:
+          type: integer
+        sender_id:
+          type: integer
+        body:
+          type: string
+        created_at:
+          type: integer
+          description: Unix-время в миллисекундах
+
+    CreateMessageRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          description: Текст сообщения
+
+    MessageCreateResult:
+      type: object
+      description: |
+        Результат `INSERT` через SQLite (`run`); при расширении API может быть заменён полной моделью `Message`.
+      required: [lastID, changes]
+      properties:
+        lastID:
+          type: integer
+          description: `id` вставленной строки
+        changes:
+          type: integer
+          description: Число затронутых строк
 
 security: []
