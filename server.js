@@ -5,7 +5,8 @@ import { pagesRoutes, apiRoutes } from './routes.js';
 import { initDb } from './shared/utils/db-helpers.js';
 import { matchRoute } from './shared/utils/match-route.js';
 import { getPathname } from './shared/utils/get-pathname.js';
-import { getRouteParams } from './shared/utils/get-route-params.js';
+import { getRouteQueryParams } from './shared/utils/get-route-query-params.js';
+import { getRoutePathParams } from './shared/utils/get-route-path-params.js';
 
 await initDb();
 
@@ -18,7 +19,8 @@ const server = http.createServer(async (req, res) => {
     : matchRoute(pathname, req.method, apiRoutes);
   const existedRoute = pageRoute ?? apiRoute;
 
-  const routeParams = getRouteParams(req.url);
+  const routeQueryParams = getRouteQueryParams(req.url);
+  const routePathParams = existedRoute ? getRoutePathParams(existedRoute.path, pathname) : {};
 
   if (existedRoute) {
     if (existedRoute.requiresAuth) {
@@ -26,7 +28,10 @@ const server = http.createServer(async (req, res) => {
       if (!auth) {
         return;
       }
-      await existedRoute.handler(req, res, auth, routeParams);
+      await existedRoute.handler(req, res, auth, {
+        queryParams: routeQueryParams,
+        pathParams: routePathParams,
+      });
       return;
     }
 

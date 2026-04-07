@@ -14,7 +14,7 @@ const parsePositiveInt = (raw) => {
 };
 
 export const getMessagesByChatId = async (_req, res, auth, params) => {
-  const chatId = parsePositiveInt(params?.chatId);
+  const chatId = parsePositiveInt(params.pathParams?.chatId);
   if (!chatId) {
     jsonResponse(res, 400, { error: 'Некорректный идентификатор чата' });
     return;
@@ -31,7 +31,8 @@ export const getMessagesByChatId = async (_req, res, auth, params) => {
 };
 
 export const createMessage = async (req, res, auth, params) => {
-  const chatId = parsePositiveInt(params?.chatId);
+  const chatId = parsePositiveInt(params.pathParams?.chatId);
+  console.log(params);
   if (!chatId) {
     jsonResponse(res, 400, { error: 'Некорректный идентификатор чата' });
     return;
@@ -49,8 +50,8 @@ export const createMessage = async (req, res, auth, params) => {
 };
 
 export const deleteMessage = async (_req, res, auth, params) => {
-  const chatId = parsePositiveInt(params?.chatId);
-  const messageId = parsePositiveInt(params?.messageId);
+  const chatId = parsePositiveInt(params.pathParams?.chatId);
+  const messageId = parsePositiveInt(params.pathParams?.messageId);
   if (!chatId || !messageId) {
     jsonResponse(res, 400, { error: 'Некорректные идентификаторы' });
     return;

@@ -1,4 +1,4 @@
-export const getRouteParams = (url) => {
+export const getRouteQueryParams = (url) => {
   const qIndex = url.indexOf('?');
   if (qIndex === -1) {
     return {};
