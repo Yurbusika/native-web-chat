@@ -1,6 +1,7 @@
 import { getChatWithPeerForUser } from '../chats/chat.repository.js';
 import { getBodyFromReq } from '../shared/utils/get-body-from-req.js';
 import { jsonResponse } from '../shared/utils/json-res.js';
+import { sendWsMessage } from '../shared/utils/ws-helpers.js';
 import {
   createMessageRepository,
   deleteMessageRepository,
@@ -32,7 +33,6 @@ export const getMessagesByChatId = async (_req, res, auth, params) => {
 
 export const createMessage = async (req, res, auth, params) => {
   const chatId = parsePositiveInt(params.pathParams?.chatId);
-  console.log(params);
   if (!chatId) {
     jsonResponse(res, 400, { error: 'Некорректный идентификатор чата' });
     return;
@@ -46,6 +46,11 @@ export const createMessage = async (req, res, auth, params) => {
 
   const body = await getBodyFromReq(req);
   const message = await createMessageRepository(chatId, auth.userId, body.body);
+
+  sendWsMessage(row.peer_id, {
+    type: 'new_message',
+    chatId,
+  });
   jsonResponse(res, 201, message);
 };
 
@@ -70,5 +75,11 @@ export const deleteMessage = async (_req, res, auth, params) => {
   }
 
   await deleteMessageRepository(messageId);
+  
+  sendWsMessage(chatRow.peer_id, {
+    type: 'message_deleted',
+    chatId,
+    messageId,
+  });
   jsonResponse(res, 200, { ok: true });
 };

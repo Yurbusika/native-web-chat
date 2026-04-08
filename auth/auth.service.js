@@ -4,6 +4,7 @@ import { buildSessionClearCookie, buildSessionSetCookie } from '../shared/utils/
 import { hashPassword, verifyPassword } from '../shared/utils/pass-helpers.js';
 import { createUser, getUserByName } from '../user/user.repository.js';
 import { createSession, deleteSession } from './auth.repository.js';
+import { closeWsConnection } from '../shared/utils/ws-helpers.js';
 
 
 export const registerUser = async (req, res) => {
@@ -61,5 +62,6 @@ export const logoutUser = async (_req, res, auth) => {
     'Content-Type': 'application/json',
     'Set-Cookie': buildSessionClearCookie(),
   });
+  closeWsConnection(auth.userId);
   res.end(JSON.stringify({ message: 'Вы успешно вышли из системы' }));
 };
