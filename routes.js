@@ -17,7 +17,7 @@ export const pagesRoutes = [
     path: '/registration',
     method: 'GET',
     handler: async (_req, res) => {
-      const data = await getReadedPublicFile('/pages/registration/index.html');
+      const data = await getReadedPublicFile('pages/registration/index.html');
       res.end(data);
     },
   },
@@ -26,6 +26,14 @@ export const pagesRoutes = [
     method: 'GET',
     handler: async (_req, res) => {
       const data = await getReadedPublicFile('index.html');
+      res.end(data);
+    },
+  },
+  {
+    path: '/chat',
+    method: 'GET',
+    handler: async (req, res) => {
+      const data = await getReadedPublicFile('pages/chat/index.html');
       res.end(data);
     },
   },

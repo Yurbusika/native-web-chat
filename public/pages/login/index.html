@@ -8,5 +8,60 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <h1>Login</h1>
+        <form id="login-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-message" hidden></p>
+
+        <button id="logout-button">Выйти</button>
+        <script>
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                const res = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                window.location.href = '/login';
+            });
+
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const messageEl = document.getElementById('login-message');
+                const body = Object.fromEntries(new FormData(form));
+                try {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: JSON.stringify(body),
+                    });
+                    if (res.ok) {
+                        messageEl.textContent = 'Вы успешно вошли в систему';
+                    } else {
+                        alert('Ошибка при входе в систему');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    messageEl.textContent = 'Ошибка при входе в систему';
+                    messageEl.hidden = false;
+                }
+            });
+
+            const socket = new WebSocket('ws://localhost:3000');
+            socket.onopen = () => {
+                console.log('WebSocket connection opened');
+            };
+            socket.onmessage = (event) => {
+                console.log('WebSocket message received:', event.data);
+            };
+            socket.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        </script>
   </body>
 </html>
