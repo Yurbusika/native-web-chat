@@ -7,6 +7,7 @@ import { matchRoute } from './shared/utils/match-route.js';
 import { getPathname } from './shared/utils/get-pathname.js';
 import { getRouteQueryParams } from './shared/utils/get-route-query-params.js';
 import { getRoutePathParams } from './shared/utils/get-route-path-params.js';
+import { tryServePublicStatic } from './shared/utils/serve-public-static.js';
 import { attachWebSocket } from './websoket/attach-websocket.js';
 
 await initDb();
@@ -37,6 +38,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     await existedRoute.handler(req, res);
+    return;
+  }
+
+  if (
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    (await tryServePublicStatic(req, res, pathname))
+  ) {
     return;
   }
 
