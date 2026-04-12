@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Boldonse&family=Jost:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css" />
     <link rel="stylesheet" href="/pages/chat/css/styles.css" />
+    <script type="module" src="/pages/chat/js/chat.js" defer></script>
   </head>
   <body>
     <div class="container">
@@ -22,24 +23,35 @@
             </svg>
   
             <!--TODO:-->
-             <h2 class="profile__name">
-              Майра
-             </h2>
+             <h2 class="profile__name"></h2>
           </div>
           
         </header>
 
         <div class="chats__container">
 
-          <div class="chats__blank">
+          <form class="chats__search" id="searchUserForm">
+            <input 
+            class="input search__input" 
+              type="text" 
+              id="searchUserInput" 
+              name="username" 
+              placeholder="Введите имя" 
+              autocomplete="off"
+            >
+
+            <button class="search__btn" type="submit">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </form>
+
+          <div class="chats__list"></div>
+
+          <div class="chats__list_blank">
             <img src="../../assets/images/blank.jpg" width="200" height=200" alt="cat">
             <p>У вас пока нет чатов...</p>
-          </div>
-
-          <div class="chats__list">
-            <div class="chats__list">
-              <a href=""></a>
-            </div>
           </div>
 
         </div>
@@ -70,7 +82,7 @@
 
         <form class="chat__input_form">
           <input type="text" class="chat__input" required placeholder="Введите сообщение">
-          <button type="submit" class="chat__input_send">
+          <button type="submit" class="input_btn">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1 7H13.5M13.5 7L7.5 1M13.5 7L7.5 13" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>

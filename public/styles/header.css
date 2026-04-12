@@ -71,6 +71,7 @@
 .header__authorization {
     display: flex;
     gap: 10px;
+    width: 300px;
 }
 
 @media (max-width: 768px) {
