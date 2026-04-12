@@ -1,3 +1,5 @@
+import { userService } from "../../../src/services/user.js";
+
 const loginForm = document.querySelector('#login-form');
 
 if (!(loginForm instanceof HTMLFormElement)) {
@@ -20,6 +22,7 @@ loginForm.addEventListener('submit', async (e) => {
     if (data.error) {
       alert(data.error);
     } else {
+      userService.setUser(data)
       window.location.href = '/chat';
     }
   })

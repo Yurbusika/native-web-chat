@@ -1,3 +1,6 @@
+import { userService } from "../../../src/services/user.js";
+
+
 const registrationForm = document.querySelector('#registration-form');
 
 if (!(registrationForm instanceof HTMLFormElement)) {
@@ -20,7 +23,8 @@ registrationForm.addEventListener('submit', async (e) => {
       if (data.error) {
         alert(data.error);
       } else {
-        window.location.href = '/chat';
+        userService.setUser(data)
+        window.location.href = '/login';
       }
     })
     .catch((error) => console.error('Error:', error));
