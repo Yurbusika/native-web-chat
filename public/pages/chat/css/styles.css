@@ -130,33 +130,50 @@
     flex-direction: column;
     gap: 15px;
     padding-top: 20px;
-    padding-left: 25px;
+    padding-inline: 25px;
     overflow: scroll;
 }
 
 .chat__message {
     width: clamp(150px, 25vw, 420px);
-    padding-inline: 25px;
+    padding-inline: 20px;
     padding-block: 10px;
     background-color: var(--color-text-light);
-    border-radius: 50px;
+    border-radius: var(--radius-large);
     display: flex;
     flex-direction: column;
     gap: 3px;
     align-items: flex-start;
+    align-self: start;
+}
+
+.message__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .message__sender {
     color: var(--color-primary-dark);
 }
 
-.chat__window.message__self {
-    align-items: flex-end;
+.chat__window .message__self {
+    align-self: flex-end;
+}
+
+.message__timestamp {
+    display: flex;
+    gap: 5px;
 }
 
 .message__timestamp_date, .message__timestamp_time {
     font-size: .8em;
-    color: var(--color-text-dark);
+    color: gray;
+}
+
+.message__timestamp_time {
+    align-self: flex-end;
 }
 
 .chat__input_form {

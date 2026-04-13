@@ -1,4 +1,4 @@
-import { removeChat, getUserChats, getChat, postMessage } from "../services/api.js";
+import { removeChat, getUserChats, getChat, postMessage, getDetailChat } from "../services/api.js";
 import { userService } from "../services/user.js";
 
 const socket = new WebSocket('ws://localhost:3000');
@@ -7,6 +7,9 @@ export function createNodeMessage (data) {
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('chat__message');
 
+    const headerContainer = document.createElement('div');
+    headerContainer.classList.add('message__header');
+
     const messageSender = document.createElement('h3');
     messageSender.classList.add('message__sender');
     messageSender.textContent = data.senderName;
@@ -14,6 +17,9 @@ export function createNodeMessage (data) {
     const messageText = document.createElement('p');
     messageText.classList.add('message__text');
     messageText.textContent = data.body;
+
+    const dateContainer = document.createElement('div');
+    dateContainer.classList.add('message__timestamp');
 
     const messageTimestamp = document.createElement('span');
     messageTimestamp.classList.add('message__timestamp_time');
@@ -27,7 +33,9 @@ export function createNodeMessage (data) {
     messageTimestamp.textContent = timeString;
     messageDate.textContent = dateString;
 
-    messageContainer.append(messageSender, messageDate, messageText, messageTimestamp);
+    dateContainer.append(messageDate, messageTimestamp);
+    headerContainer.append(messageSender, dateContainer);
+    messageContainer.append(headerContainer, messageText);
 
     return messageContainer;
 }
@@ -52,8 +60,12 @@ export function createNodeListChat(data) {
     chatListContainer.append(name, updated);
 
     chatListContainer.addEventListener('click', () => {
-        createMessageWindow(data);
-        restoreChatHistory(data.id);
+
+        const url = new URL(window.location);
+        url.searchParams.set('id', data.id);
+        window.location.href = url.href;
+
+        createMessageWindow();
     })
 
     if (data.has_unread) {
@@ -72,7 +84,9 @@ export function createChatHeader(data) {
     chatInfo.className = 'chat__info';
     
     const chatName = document.createElement('h3');
-    chatName.textContent = data.peer_username;
+    if (data) {
+        chatName.textContent = data.peer_username;
+    }
 
     const chatRemove = document.createElement('button');
     chatRemove.className = 'chat__remove';
@@ -80,64 +94,92 @@ export function createChatHeader(data) {
 
     const img = document.createElement('img');
     img.src = '/assets/icons/remove.svg'
-    img.width = 24;
-    img.height = 24;
+    img.width = 0;
+    img.height = 0;
     chatRemove.append(img);
 
-    chatRemove.addEventListener('click', () => {
-        removeChat(data.id).then(() => {
-            const chatList = document.querySelector('.chats__list');
-            chatList.innerHTML = '';
+    if (data) {
+        img.width = 24;
+        img.height = 24;
 
-            getUserChats().then(chats => {
-                chats.forEach(chatData => {
-                    const chatListNode = createNodeListChat(chatData);
-                    chatList.append(chatListNode)
+        chatRemove.addEventListener('click', () => {
+            removeChat(data.id).then(() => {
+                const chatList = document.querySelector('.chats__list');
+                chatList.innerHTML = '';
+    
+                getUserChats().then(chats => {
+                    chats.forEach(chatData => {
+                        const chatListNode = createNodeListChat(chatData);
+                        chatList.append(chatListNode)
+                    });
                 });
-            });
+            })
+    
+            const chatContainer = document.querySelector('.chat__container');
+            chatContainer.innerHTML = '';
         })
-
-    })
-
+    }
     chatInfo.append(chatName);
     chatHeader.append(chatInfo, chatRemove);
 
     return chatHeader;
 }
 
-export async function restoreChatHistory(id) {
+export function restoreChatHistory() {
+    const url = new URL(window.location);
+    const id = url.searchParams.get('id');
+
     const chatWindow = document.querySelector('.chat__window');
     chatWindow.innerHTML = '';
     const currentUser = userService.getUser();
-    const chatHistory = await getChat(id);
-    if (chatHistory) {
-        chatHistory.forEach(message => {
+    getChat(id).then(messages => {
+        messages.forEach(message => {
             const messageContainer = createNodeMessage(message);
             chatWindow.append(messageContainer);
 
-            console.log(message)
             if (message.sender_id === currentUser.id) {
                 messageContainer.classList.add('message__self');
             }
 
-            if(message === chatHistory[chatHistory.length - 1]) {
-                messageContainer.scrollIntoView();
+            if(message === messages[messages.length - 1]) {
+                messageContainer.scrollIntoView(false);
             }
         })
-    }
+    });
 }
 
-export function createMessageWindow(data) {
-    const chatContainer = document.querySelector('.chat__container');
-    chatContainer.innerHTML = '';
-    
-    const chatWindow = document.createElement('div');
-    chatWindow.className = 'chat__window';
+export function createMessageWindow() {
+    const url = new URL(window.location);
+    const id = url.searchParams.get('id');
 
-    const chatHeader = createChatHeader(data);
-    const chatInput = createChatInput(data.id);
-    
-    chatContainer.append(chatHeader, chatWindow, chatInput);
+    if (!id) {
+        const chatContainer = document.querySelector('.chat__container');
+        chatContainer.innerHTML = '';
+
+        const chatWindow = document.createElement('div');
+        chatWindow.className = 'chat__window';
+
+        const chatHeader = createChatHeader(null);
+        const chatInput = createChatInput(null);
+        
+        chatContainer.append(chatHeader, chatWindow, chatInput);
+        return;
+    }
+
+    getDetailChat(id).then(data => {
+        const chatContainer = document.querySelector('.chat__container');
+        chatContainer.innerHTML = '';
+        
+        const chatWindow = document.createElement('div');
+        chatWindow.className = 'chat__window';
+
+        const chatHeader = createChatHeader(data);
+        const chatInput = createChatInput(id);
+        
+        chatContainer.append(chatHeader, chatWindow, chatInput);
+
+        restoreChatHistory();
+    })
 }
 
 function createChatInput(chatId) {
@@ -151,22 +193,28 @@ function createChatInput(chatId) {
     input.required = true;
     input.placeholder = 'Введите сообщение';
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-
-            sendMessage(chatId);
-            restoreChatHistory(chatId)
-        }
-    })
+    if(chatId) {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+    
+                sendMessage(chatId);
+                restoreChatHistory()
+            }
+        })
+    }
 
     const button = document.createElement('button');
     button.type = 'submit';
     button.className = 'input_btn';
 
+    if(!chatId) {
+        button.disabled = true;
+    }
+
     button.addEventListener('click', () => {
         sendMessage(chatId);
-        restoreChatHistory(chatId)
+        restoreChatHistory()
     })
 
     const img = document.createElement('img');
@@ -193,7 +241,7 @@ function sendMessage(chatId) {
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
-    restoreChatHistory(data.chatId);
+    restoreChatHistory();
   };
 
 
