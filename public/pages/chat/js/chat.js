@@ -1,6 +1,6 @@
 import { userService } from "../../../src/services/user.js";
 
-import { getUserChats, createChat, findUsersByName, removeChat, getChat } from "../../../src/services/api.js";
+import { getUserChats, createChat, findUsersByName, removeChat, getChat, logoutUser } from "../../../src/services/api.js";
 import { createNodeMessage, createNodeListChat } from "../../../src/helpers/helpers.js";
 
 const currentUser = userService.getUser()
@@ -62,3 +62,8 @@ searchForm.addEventListener('submit', async (e) => {
     searchForm.reset();
 })
 
+const logoutBtn = document.querySelector('#logoutBtn');
+logoutBtn.addEventListener('click', () => {
+    logoutUser();
+    window.location.href = '/login';
+});

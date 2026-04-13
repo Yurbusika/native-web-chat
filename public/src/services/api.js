@@ -96,3 +96,16 @@ export async function postMessage(chatId, message) {
     })
     .catch(error => console.error('Error:', error))
 }
+
+export async function logoutUser() {
+    return fetch('/api/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        }
+    })
+}

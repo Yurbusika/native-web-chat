@@ -40,15 +40,16 @@
 
 .chats__search {
     position: relative;
+    width: calc(100% - 2em);
 }
 
 .search__input {
-    width: 90%;
+    width: 100%;
 }
 
 .search__btn {
     position: absolute;
-    right: 10px;
+    right: -10px;
     top: 10px;
 }
 
@@ -180,4 +181,9 @@
     width: 80%;
     padding-left: 15px;
     font-size: 1em;
+}
+
+.header__logout {
+    margin-left: auto;
+    margin-top: 3px;
 }

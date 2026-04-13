@@ -65,3 +65,8 @@ export const logoutUser = async (_req, res, auth) => {
   closeWsConnection(auth.userId);
   res.end(JSON.stringify({ message: 'Вы успешно вышли из системы' }));
 };
+
+export const getMe = async (_req, res, auth) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ id: auth.userId, username: auth.username }));
+};
