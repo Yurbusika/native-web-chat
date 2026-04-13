@@ -1,5 +1,5 @@
 
-import { loginUser, logoutUser, registerUser } from './auth.service.js';
+import { getMe, loginUser, logoutUser, registerUser } from './auth.service.js';
 
 export const authController = [
   {
@@ -18,4 +18,10 @@ export const authController = [
     requiresAuth: true,
     handler: logoutUser,
   },
+  {
+    path: '/api/me',
+    method: 'GET',
+    requiresAuth: true,
+    handler: getMe,
+  }
 ];
