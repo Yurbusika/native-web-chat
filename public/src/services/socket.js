@@ -1,4 +1,6 @@
-const socket = new WebSocket('ws://localhost:3000');
+import { getWebSocketUrl } from './ws-url.js';
+
+const socket = new WebSocket(getWebSocketUrl());
 
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);

@@ -1,7 +1,8 @@
 import { removeChat, getUserChats, getChat, postMessage, getDetailChat } from "../services/api.js";
 import { userService } from "../services/user.js";
+import { getWebSocketUrl } from "../services/ws-url.js";
 
-const socket = new WebSocket('ws://localhost:3000');
+const socket = new WebSocket(getWebSocketUrl());
 
 export function createNodeMessage (data) {
     const messageContainer = document.createElement('div');
