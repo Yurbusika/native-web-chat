@@ -109,3 +109,17 @@ export async function logoutUser() {
         }
     })
 }
+
+export async function getDetailChat(id) {
+    return fetch(`/api/chats/${id}`, {
+        method: 'GET'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        }
+        return data;
+    })
+    .catch(error => console.error('Error:', error))
+}

@@ -1,8 +1,7 @@
-import { socket } from "../../../src/services/socket.js";
 import { userService } from "../../../src/services/user.js";
 
 import { getUserChats, createChat, findUsersByName, removeChat, getChat, logoutUser } from "../../../src/services/api.js";
-import { createNodeMessage, createNodeListChat } from "../../../src/helpers/helpers.js";
+import { createNodeMessage, createNodeListChat, createMessageWindow} from "../../../src/helpers/helpers.js";
 
 const currentUser = userService.getUser()
 const username = currentUser.username;
@@ -15,8 +14,9 @@ const chatList = document.querySelector('.chats__list');
 const chatsBlank = document.querySelector('.chats__list_blank');
 const chatWindow = document.querySelector('.chat__window');
 
+createMessageWindow();
+
 const chatsList = await getUserChats();
-console.log(chatsList)
 
 if (!chatsList.length) {
     chatsBlank.style.display = 'flex';
