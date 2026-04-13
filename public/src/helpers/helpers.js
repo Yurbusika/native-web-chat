@@ -243,6 +243,7 @@ socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
     restoreChatHistory();
+    createNodeListChat();
   };
 
 
