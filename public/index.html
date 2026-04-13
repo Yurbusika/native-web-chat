@@ -11,6 +11,9 @@
     <link rel="stylesheet" type="text/css" href="/styles/hero.css" />
     <link rel="stylesheet" type="text/css" href="/styles/header.css" />
     <link rel="stylesheet" type="text/css" href="/styles/features.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/about.css">
+
+    <script src="/src/slider.js" defer></script>
   </head>
   <body>
     <div class="landing__container">
@@ -22,11 +25,9 @@
           <div class="header__logo">
 
             <a class="logo__link" href="#">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path opacity="0.5" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="currentColor"/>
-                <path d="M7.5 11.1093C7.5 12.4777 8.81884 13.9135 10.0286 14.9426C10.8524 15.6435 11.2644 15.9939 12 15.9939C12.7356 15.9939 13.1476 15.6435 13.9714 14.9426C15.1812 13.9135 16.5 12.4777 16.5 11.1093C16.5 8.43212 14.0249 7.4326 12 9.50069C9.97507 7.4326 7.5 8.43212 7.5 11.1093Z" fill="currentColor"/>
-              </svg>
-              <span>IQChat</span>
+              <img width="62" height="62"  src="./assets/icons/logo.png" alt="flamiGo">
+
+              <span>Flamigo Chatty</span>
             </a>
 
           </div>
@@ -81,13 +82,26 @@
         <section class="hero">
           <div class="hero__content">
             <!-- Заголовок и возможно описание -->
-            <h1></h1>
-            <a class="btn" href="">Начать общаться</a>
+            <h1 class="hero__title">Розовый фламинго, дитя заката, здесь общался когда-то</h1>
+            <a class="btn hero__btn" href="">Go в чат</a>
           </div>
         </section>
 
         <section class="about" id="about">
-          <!-- Описание -->
+          <div class="about__container">
+            <div class="about__content">
+              <p class="about__description">
+                Удивительно розовый чатик Flamigo Chatty — лёгкий и изящный, создан на нативных технологиях без использования сторонних фреймворков.
+                <br/>
+                Проект был разработан в рамках мини-хакатона компании IQ Dev под названием «Чат без фреймворка», что стало главным вызовом и одновременно ключевой особенностью решения. 
+                <br/>
+                Интерфейс выполнен в яркой розовой палитре, создающей дружелюбную и запоминающуюся атмосферу общения.  Flamigo Chatty — это пример того, как можно создать полноценный продукт, опираясь исключительно на нативные возможности платформы, сохранив при этом стиль, удобство и техническую элегантность.
+              </p>
+            </div>
+
+            <div class="about__image">
+            </div>
+          </div>
         </section>
 
         <section class="features" id="features">
@@ -97,30 +111,45 @@
             <div class="slider__row">
               <ul class="slider__line">
                 <li class="card">
-                  <p>Реалтайм сообщения</p>
+                  <div class="card_content">
+                    <p class="card__emoji">🌸</p>
+                    <h3>Реалтайм сообщения</h3>
+                  </div>
                 </li>
                 <li class="card">
-                  <p>История сообщений</p>
+                  <div class="card_content">
+                    <p class="card__emoji">⚡️</p>
+                    <h3>История сообщений</h3>
+                  </div>
                 </li>
                 <li class="card">
-                  <p>Авторизация</p>
+                  <div class="card_content">
+                    <p class="card__emoji">👋</p>
+                    <h3>Авторизация</h3>
+                  </div>
                 </li>
                 <li class="card">
-                  <p>Адаптивность</p>
+                  <div class="card_content">
+                    <p class="card__emoji">🙆‍♀️</p>
+                    <h3>Адаптивность</h3>
+                  </div>
                 </li>
                 <li class="card">
-                  <p>Выбор темы</p>
+                  <div class="card_content">
+                    <p class="card__emoji">☀️</p>
+                    <h3>Выбор темы</h3>
+                  </div>
                 </li>
               </ul>
             </div>
 
             <div class="slider__button_container">
-              <button class="slider__button slicer__button_prev">
+              <button class="slider__button slider__button_prev">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M13.5 7H1M1 7L7 1M1 7L7 13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
               </button>
-              <button class="slider__button slicer__button_next">
+              <button class="slider__button slider__button_next">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M1 7H13.5M13.5 7L7.5 1M13.5 7L7.5 13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>

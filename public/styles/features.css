@@ -31,10 +31,18 @@
     border-radius: 30px;
 }
 
-.card > p {
-    color: var(--color-contrast);
-    font-weight: 600;
+.card_content {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+} 
+
+.card__emoji {
+    font-size: 70px;
 }
+
 
 .slider__button_container {
     display: flex;

@@ -19,13 +19,38 @@ html[data-theme="dark"] .hero {
 }
 
 .hero__content {
-    margin: 0 auto;
+    width: 50%;
     padding: 60px 0px;
+    margin-left: 50px;
 
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    align-items: start;
+    gap: 100px;
 
     font-family: "Jost", sans-serif;
+}
+
+.hero__title {
+    color: var(--color-text-dark);
+    font-size: 38px;
+    font-weight: 600;
+}
+
+.hero__btn {
+    background-color: var(--color-accent-dark);
+}
+
+.hero__btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+@media (max-width: 880px) {
+    .hero__content { 
+        gap: 20px;
+    }
+
+    .hero__title {
+        font-size: 30px;
+    }
 }
