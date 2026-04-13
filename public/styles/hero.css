@@ -1,3 +1,7 @@
+html[data-theme="dark"] .hero {
+    filter: brightness(0.88);
+}
+
 .hero {
     background-image: url(../../assets/images/hero.jpg);
     background-position-y: -40px;

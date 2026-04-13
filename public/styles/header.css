@@ -21,6 +21,7 @@
 
 .logo__link {
     text-decoration: none;
+    color: var(--color-primary);
 
     display: flex;
     gap: 8px;
@@ -30,6 +31,18 @@
 
     border-radius: 12px;
 
+}
+
+.logo__link svg {
+    flex-shrink: 0;
+}
+
+.logo__link svg [fill]:not([fill="none"]) {
+    fill: currentColor;
+}
+
+.logo__link svg [stroke]:not([stroke="none"]) {
+    stroke: currentColor;
 }
 
 .logo__link span {
@@ -71,7 +84,52 @@
 .header__authorization {
     display: flex;
     gap: 10px;
-    width: 300px;
+    margin-left: auto;
+    width: auto;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-xlarge, 50px);
+    border: 1px solid var(--color-primary-dark);
+    color: var(--color-contrast);
+    background-color: var(--color-page-bg);
+    flex-shrink: 0;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    color: var(--color-text-light);
+    background-color: var(--color-primary-dark);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+}
+
+.theme-toggle__icon {
+    display: none;
+    line-height: 0;
+}
+
+.theme-toggle__icon--light {
+    display: block;
+}
+
+.theme-toggle--dark .theme-toggle__icon--light {
+    display: none;
+}
+
+.theme-toggle--dark .theme-toggle__icon--dark {
+    display: block;
 }
 
 @media (max-width: 768px) {
