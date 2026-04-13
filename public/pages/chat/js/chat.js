@@ -1,4 +1,3 @@
-import { socket } from "../../../src/services/socket.js";
 import { userService } from "../../../src/services/user.js";
 
 import { getUserChats, createChat, findUsersByName, removeChat, getChat } from "../../../src/services/api.js";

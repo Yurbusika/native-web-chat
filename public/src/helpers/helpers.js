@@ -1,4 +1,5 @@
 import { removeChat, getUserChats, getChat, postMessage } from "../services/api.js";
+import { userService } from "../services/user.js";
 
 const socket = new WebSocket('ws://localhost:3000');
 
@@ -15,10 +16,18 @@ export function createNodeMessage (data) {
     messageText.textContent = data.body;
 
     const messageTimestamp = document.createElement('span');
-    messageTimestamp.classList.add('message__timestamp');
-    messageTimestamp.textContent = data.createdAt;
+    messageTimestamp.classList.add('message__timestamp_time');
+    const messageDate = document.createElement('span');
+    messageDate.classList.add('message__timestamp_date');
 
-    messageContainer.append(messageSender, messageText, messageTimestamp);
+    const date = new Date(data.created_at);
+    const dateString = date.toLocaleDateString();
+    const timeString = date.toLocaleTimeString();
+
+    messageTimestamp.textContent = timeString;
+    messageDate.textContent = dateString;
+
+    messageContainer.append(messageSender, messageDate, messageText, messageTimestamp);
 
     return messageContainer;
 }
@@ -44,7 +53,7 @@ export function createNodeListChat(data) {
 
     chatListContainer.addEventListener('click', () => {
         createMessageWindow(data);
-        restoreChatHistory(data);
+        restoreChatHistory(data.id);
     })
 
     if (data.has_unread) {
@@ -67,6 +76,7 @@ export function createChatHeader(data) {
 
     const chatRemove = document.createElement('button');
     chatRemove.className = 'chat__remove';
+    chatRemove.title = 'Удалить чат и сообщения';
 
     const img = document.createElement('img');
     img.src = '/assets/icons/remove.svg'
@@ -95,13 +105,24 @@ export function createChatHeader(data) {
     return chatHeader;
 }
 
-export async function restoreChatHistory(data) {
-    const chatHistory = await getChat(data.id);
+export async function restoreChatHistory(id) {
+    const chatWindow = document.querySelector('.chat__window');
+    chatWindow.innerHTML = '';
+    const currentUser = userService.getUser();
+    const chatHistory = await getChat(id);
     if (chatHistory) {
         chatHistory.forEach(message => {
             const messageContainer = createNodeMessage(message);
-            const chatWindow = document.querySelector('.chat__window');
             chatWindow.append(messageContainer);
+
+            console.log(message)
+            if (message.sender_id === currentUser.id) {
+                messageContainer.classList.add('message__self');
+            }
+
+            if(message === chatHistory[chatHistory.length - 1]) {
+                messageContainer.scrollIntoView();
+            }
         })
     }
 }
@@ -135,12 +156,18 @@ function createChatInput(chatId) {
             e.preventDefault();
 
             sendMessage(chatId);
+            restoreChatHistory(chatId)
         }
     })
 
     const button = document.createElement('button');
     button.type = 'submit';
     button.className = 'input_btn';
+
+    button.addEventListener('click', () => {
+        sendMessage(chatId);
+        restoreChatHistory(chatId)
+    })
 
     const img = document.createElement('img');
     img.src = '/assets/icons/arrow.svg';
@@ -163,14 +190,10 @@ function sendMessage(chatId) {
     }
 }
 
-socket.onopen = () => {
-    console.log('Соединение установлено');
-};
-
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-  
-    console.log('Сообщение:', data);
+
+    restoreChatHistory(data.chatId);
   };
 
 
