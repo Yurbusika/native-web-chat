@@ -1,5 +1,4 @@
-import { getAsync } from '../shared/utils/db-helpers.js';
-import { runAsync } from '../shared/utils/db-helpers.js';
+import { allAsync, getAsync, runAsync } from '../shared/utils/db-helpers.js';
 
 const escapeLikePattern = (value) =>
   value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
@@ -22,8 +21,8 @@ export const createUser = async (username, hashedPassword) => {
 
 export const findUserByNameRepository = async (partialName) => {
   const pattern = `%${escapeLikePattern(partialName)}%`;
-  return await getAsync(
-    "SELECT id, username FROM users WHERE LOWER(username) LIKE LOWER(?) ESCAPE '\\'",
+  return await allAsync(
+    "SELECT id, username FROM users WHERE LOWER(username) LIKE LOWER(?) ESCAPE '\\' ORDER BY username COLLATE NOCASE",
     [pattern]
   );
 };

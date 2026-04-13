@@ -41,13 +41,15 @@ export async function findUsersByName (name) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.error) {
+        if (data && typeof data === 'object' && 'error' in data) {
             alert(data.error)
+            return [];
         }
-        return data;
+        return Array.isArray(data) ? data : [];
     })
     .catch(error => {
         console.error('Error:', error)
+        return [];
     })
 }
 
