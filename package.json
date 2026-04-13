@@ -4,6 +4,9 @@
   "description": "",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "scripts": {
     "start": "node --env-file=.env --watch server.js"
   },

@@ -7,10 +7,15 @@ import { matchRoute } from './shared/utils/match-route.js';
 import { getPathname } from './shared/utils/get-pathname.js';
 import { getRouteQueryParams } from './shared/utils/get-route-query-params.js';
 import { getRoutePathParams } from './shared/utils/get-route-path-params.js';
+import { getListenHost } from './shared/utils/get-listen-host.js';
+import { getListenPort } from './shared/utils/get-listen-port.js';
 import { tryServePublicStatic } from './shared/utils/serve-public-static.js';
 import { attachWebSocket } from './websoket/attach-websocket.js';
 
 await initDb();
+
+const port = getListenPort();
+const host = getListenHost();
 
 const server = http.createServer(async (req, res) => {
   const pathname = getPathname(req);
@@ -52,8 +57,8 @@ const server = http.createServer(async (req, res) => {
   res.end('<h1>404 Not Found</h1>');
 });
 
-server.listen(process.env.PORT, Number(process.env.HOST), () => {
-  console.log(`Server is running on http://${process.env.HOST}:${process.env.PORT}`);
+server.listen(port, host, () => {
+  console.log(`Server is running on http://${host}:${port}`);
 });
 
 attachWebSocket(server);
