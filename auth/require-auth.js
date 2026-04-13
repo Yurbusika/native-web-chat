@@ -4,9 +4,15 @@ import { findValidSession } from './auth.repository.js';
 export const requireAuth = async (req, res) => {
   const sessionId = getSessionIdFromRequest(req);
   if (!sessionId) {
-    res.writeHead(401, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Не авторизован' }));
-    return null;
+    if (req.url.includes('/api/')) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Не авторизован' }));
+      return null;
+    }
+    
+    res.writeHead(302, { Location: '/login' });
+    
+    return res.end();
   }
   const row = await findValidSession(sessionId);
   if (!row) {

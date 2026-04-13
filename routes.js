@@ -36,6 +36,7 @@ export const pagesRoutes = [
       const data = await getReadedPublicFile('pages/chat/index.html');
       res.end(data);
     },
+    requiresAuth: true,
   },
 ];
 
