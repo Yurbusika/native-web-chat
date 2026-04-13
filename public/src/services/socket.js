@@ -1,23 +1,19 @@
+const socket = new WebSocket('ws://localhost:3000');
 
-class SocketService {
-    socket; 
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+  
+    console.log('Сообщение:', data);
+  };
 
-    connect() {
-        this.socket = new WebSocket('ws://localhost:3000');
-
-        this.socket.onmessage = (e) => {
-            const data = JSON.parse(e.data)
-
-            console.log('messgae', data)
-        }
-    }
-
-    send(data) {
-        this.socket.send(JSON.stringify(data))
-    }
-
-
+function sendMessage(text) {
+    socket.send(JSON.stringify({
+        type: 'message',
+        text
+    }));
 }
 
-const socketService = new SocketService();
-export default socketService;
+export {
+    socket,
+    sendMessage
+}
